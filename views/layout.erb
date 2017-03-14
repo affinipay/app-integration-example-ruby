@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= site_name %> Demo</title>
+  <link type="text/css" rel="stylesheet" media="screen" href="/bootstrap-3.3.6.min.css">
+  <link type="text/css" rel="stylesheet" media="screen" href="/application.css">
+</head>
+<body>
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/"><%= site_name %> Demo - Business View</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/portal">Client Portal</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <%= yield %>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="/bootstrap-3.3.6.min.js"></script>
+  <script src="/application.js"></script>
+</body>
+</html>

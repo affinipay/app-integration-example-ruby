@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= site_name %> Demo</title>
+  <link type="text/css" rel="stylesheet" media="screen" href="/bootstrap-3.3.6.min.css">
+  <link type="text/css" rel="stylesheet" media="screen" href="/application.css">
+
+  <script type="text/javascript" src="https://api.chargeio.com/assets/api/v1/chargeio.min.js"></script>
+  <script type="text/javascript">
+    // Initialize ChargeIO
+    ChargeIO.init({ public_key: '<%= ENV['GATEWAY_PUBLIC_KEY'] %>' });
+
+    function processErrorMessages(messages) {
+      var msgList = $('#messages ul');
+      $(msgList).empty();
+      $.each(messages, function(index, item) {
+        $(msgList).append("<li>" + item.message + "</li>");
+      });
+
+      $('#messages').show();
+      $('#pay').prop("disabled", "");
+    }
+
+    ChargeIO.ready(function() {
+      $('#pay').click(function(event) {
+        event.preventDefault();
+        $('#pay').prop("disabled", "disabled");
+        var amount = <%= amount.cents %>;
+        var paymentJson = ChargeIO.payment_params($('form'));
+        ChargeIO.create_token(paymentJson, function(token) {
+          $.post('/pay_invoice', { 'amount': amount, 'token_id': token.id }).done(function(data) {
+            if (data.messages && data.messages.length) {
+              processErrorMessages(data.messages);
+            }
+            else {
+              window.location = '/invoice_receipt';
+            }
+          }).fail(function(xhr) {
+            processErrorMessages([ { "message": "An unexpected error occurred" } ]);
+          });
+        });
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/portal"><%= site_name %> Demo - Client Portal</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/">Business View</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <%= yield %>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="/bootstrap-3.3.6.min.js"></script>
+  <script src="/application.js"></script>
+</body>
+</html>

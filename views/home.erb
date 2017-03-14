@@ -1,0 +1,42 @@
+<% unless signed_in? %>
+  <section id="explore">
+    <div class="row">
+      <div class="col-md-12">
+          <p>Sign in to <%= site_name %> to retrieve your merchant information, accounts, and Payment Gateway credentials.</p>
+          <p><a href="/sign_in" type="button" class="btn btn-primary btn-lg">Connect To <%= site_name %> »</a></p>
+
+          <% if params[:error] %>
+            <h4 class="code error">
+              Error: <%= params[:error] %><br/>
+              <%= params[:error_description] %>
+            </h4>
+          <% end %>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="row">
+      <div class="col-md-12">
+        <%= markdown_readme %>
+      </div>
+    </div>
+  </section>
+<% end %>
+
+<% if signed_in? %>
+  <section>
+    <div class="row">
+      <div class="col-md-12">
+          <h3>Welcome, <%= session[:business_name] %></h3>
+          <div>
+            <a href="/merchant_info" class="btn btn-success" data-explore>Merchant Info</a>
+            <a href="/transactions" class="btn btn-success" data-explore>Transactions</a>
+            <a href="/events" class="btn btn-success" data-explore>Events</a>
+            <a href="/sign_out" class="btn btn-danger">Sign out</a>
+          </div>
+          <p><pre id="display-json"></pre></p>
+      </div>
+    </div>
+  </section>
+<% end %>
