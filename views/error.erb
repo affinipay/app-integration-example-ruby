@@ -1,2 +1,13 @@
-<p><code>Error</code></p>
-<%= h @error.response.inspect %>
+<h1>An error occurred</h1>
+<p>
+  <% if @error.code %>
+    <b>Code: </b><%= @error.code %><br>
+  <% end %>
+  <% if @error.description %>
+    <b>Description: </b><%= @error.description %><br>
+  <% end %>
+  <% if @error.response %>
+    <b>Response:</b><br>
+    <%= h @error.response.inspect %>
+  <% end %>
+</p>

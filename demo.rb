@@ -99,11 +99,15 @@ class Demo < Sinatra::Base
     if params[:error]
       erb :home
     else
-      new_token = client.auth_code.get_token(params[:code], :redirect_uri => redirect_uri)
-      session[:access_token]  = new_token.token
-      session[:refresh_token] = new_token.refresh_token
-      initialize_merchant
-      redirect '/'
+      begin
+        new_token = client.auth_code.get_token(params[:code], :redirect_uri => redirect_uri)
+        session[:access_token]  = new_token.token
+        session[:refresh_token] = new_token.refresh_token
+        initialize_merchant
+        redirect '/'
+      rescue OAuth2::Error => @error
+        erb :error, :layout => !request.xhr?
+      end
     end
   end
 
