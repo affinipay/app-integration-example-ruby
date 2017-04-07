@@ -45,7 +45,7 @@ are ready to go live, Support will assist with making your application public fo
 
 Login to your AffiniPay account, click the user menu, and select `Developers` to display your partner
 application. Click the `Edit` button to configure your application. Make sure to enable OAuth, and
-set `http://localhost:9292/callback` in the `redirect uri` field.
+set `http://127.0.0.1:9292/callback` in the `redirect uri` field.
 
 ### 3) Retrieve your AffiniPay Partner Application Client ID and Secret
 
@@ -55,7 +55,7 @@ Copy the `OAuth Client ID` and `OAuth Secret` displayed in the application confi
     # env.rb
     ENV['OAUTH2_CLIENT_ID']           = "129477f..."
     ENV['OAUTH2_CLIENT_SECRET']       = "c1eec90..."
-    ENV['OAUTH2_CLIENT_REDIRECT_URI'] = "http://localhost:9292/callback"
+    ENV['OAUTH2_CLIENT_REDIRECT_URI'] = "http://127.0.0.1:9292/callback"
 
 
 ### 4) Start the server
@@ -64,6 +64,5 @@ Fire up the app server with:
 
     rackup config.ru
 
-You should now be able to start using the app by opening the [index page](http://localhost:9292) in your
+You should now be able to start using the app by opening the [index page](http://127.0.0.1:9292) in your
 browser.
-
