@@ -22,7 +22,7 @@ means by which integrating applications can obtain information about changes tha
 charges authorized and captured, for internal reconciliation.
 
 The app also provides a sample [client portal](http://localhost:9292/portal) demonstrating a simple
-payment form integration. The page uses the [JavaScript tokenization library](https://developers.affinipay.com/guides/payment-form-getting-started.html)
+payment form integration. The page uses the [JavaScript tokenization library](https://developers.affinipay.com/collect/create-payment-form.html)
 to exchange confidential payment details for a one-time payment token. The token is retrieved directly
 in the browser, via a direct secure connection to the Payment Gateway. Once retrieved, the token is
 POSTed to the application's `/pay_invoice` endpoint, which securely authorizes the payment via the
@@ -62,7 +62,7 @@ Copy the `OAuth Client ID` and `OAuth Secret` displayed in the application confi
 
 Fire up the app server with:
 
-    rackup config.ru
+    rackup config.ru -o 0.0.0.0
 
 You should now be able to start using the app by opening the [index page](http://127.0.0.1:9292) in your
 browser.

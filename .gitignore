@@ -1,3 +1,11 @@
 .idea
+*.iml
 .DS_Store
-
+test_merchant_info.json 
+test_sanitized_merchant_info.json 
+test_stored_merchant_info.json 
+merchant_info.json 
+test_account.out
+results.out
+test-results.xml
+.bundle/*

@@ -4,8 +4,9 @@ require 'json'
 
 Bundler.require
 
-require './demo'
+require './app/demoApi'
 
 use Rack::Session::Cookie, :key => 'demo', :path => '/', :secret => 'secret'
 
-run Demo
+# run Demo
+run DemoApi

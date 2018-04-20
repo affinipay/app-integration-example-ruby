@@ -1,11 +1,23 @@
+
 require 'sinatra/base'
 require './lib/html_renderer'
+require_relative 'models/stored_merchant_info'
 
 # Load partner configuration
 raise 'Configuration file env.rb not found!' unless File.exists?('env.rb')
 load 'env.rb'
 
 class Demo < Sinatra::Base
+  class << self; attr_accessor :_access_token_string end
+  class << self; attr_accessor :refresh_token_string end
+  class << self; attr_accessor :m_info end
+
+
+  # sets root as the parent-directory of the current file
+  set :root, File.join(File.dirname(__FILE__), '..')
+  # sets the view directory correctly
+  set :views, Proc.new { File.join(root, 'app/views') }
+
   # View helpers
   helpers do
     include Rack::Utils
@@ -26,7 +38,7 @@ class Demo < Sinatra::Base
     end
 
     def markdown_readme
-      markdown(File.read(File.join(File.dirname(__FILE__), 'README.md')))
+      markdown(File.read(File.join(settings.root, 'README.md')))
     end
 
     def site_name
@@ -39,6 +51,23 @@ class Demo < Sinatra::Base
           'AffiniPay'
       end
     end
+
+  end
+
+  def access_token_string
+    m = merchant_info
+    m.access_token
+  end
+
+  def merchant_info
+    if Demo.m_info
+      Demo.m_info
+    else
+      Demo.m_info = StoredMerchantInfo.new
+      Demo.m_info.load_from_file
+    end
+
+    Demo.m_info
   end
 
   def client(token_method = :post)
@@ -51,6 +80,7 @@ class Demo < Sinatra::Base
   end
 
   def access_token
+    puts "access_token. session[:access_token] = #{session[:access_token]}, session[:refresh_token] = #{session[:refresh_token]}"
     OAuth2::AccessToken.new(client, session[:access_token], :refresh_token => session[:refresh_token])
   end
 
@@ -62,7 +92,11 @@ class Demo < Sinatra::Base
     response = access_token.get('/api/v1/chargeio_credentials')
     merchant_info = JSON.parse(response.body)
     session[:business_name] = merchant_info['merchant']['name']
-
+    ENV['ACCESS_TOKEN'] = session[:access_token]
+    Demo._access_token_string = session[:access_token]
+    Demo.refresh_token_string = session[:refresh_token_string]
+    Demo.m_info = StoredMerchantInfo.new_w_json(Demo._access_token_string, response.body)
+    Demo.m_info.save_to_file
     # Push the test public and secret keys into the environment for gateway interactions.
     # In a production app, the secret would be stored with the connecting business.
     ENV['GATEWAY_PUBLIC_KEY'] = merchant_info['test_accounts'][0]['public_key']
@@ -72,7 +106,10 @@ class Demo < Sinatra::Base
   # Creates a Payment Gateway client using the gateway credentials
   def gateway
     raise 'No Gateway secret configured' unless ENV['GATEWAY_SECRET_KEY']
-    ChargeIO::Gateway.new(:secret_key => ENV['GATEWAY_SECRET_KEY'])
+    ChargeIO::Gateway.new(
+        :site => ENV['GATEWAY_URI'],
+        :secret_key => ENV['GATEWAY_SECRET_KEY']
+    )
   end
 
   # Main business view
@@ -80,16 +117,21 @@ class Demo < Sinatra::Base
     erb :home
   end
 
+  get '/key' do
+    key = client.auth_code
+  end
+
   # Initiate OAuth2 Authorization Code Grant flow
   get '/sign_in' do
     redirect client.auth_code.authorize_url(:redirect_uri => redirect_uri, :scope => 'chargeio')
   end
 
-  # Lightweight logout. Note that if the user's AffiniPay session cookie is stil active from the login,
+  # Lightweight logout. Note that if the user's AffiniPay session cookie is still active from the login,
   # a subsequent execution of the grant flow will not force re-login. To do so, first log out of the
   # AffiniPay app.
   get '/sign_out' do
     session[:access_token] = nil
+    Demo.m_info.delete_file unless Demo.m_info.nil?
     redirect '/'
   end
 
@@ -103,6 +145,10 @@ class Demo < Sinatra::Base
         new_token = client.auth_code.get_token(params[:code], :redirect_uri => redirect_uri)
         session[:access_token]  = new_token.token
         session[:refresh_token] = new_token.refresh_token
+        Demo._access_token_string = session[:access_token]
+        Demo.refresh_token_string = session[:refresh_token_string]
+        puts "Demo._access_token_string = #{Demo._access_token_string}"
+
         initialize_merchant
         redirect '/'
       rescue OAuth2::Error => @error
@@ -114,11 +160,11 @@ class Demo < Sinatra::Base
   # Obtains merchant and account information, including Payment Gateway credentials, using the access token
   get '/merchant_info' do
     begin
-      response = access_token.get('/api/v1/chargeio_credentials')
-      @json = JSON.parse(response.body)
-      erb :explore, :layout => !request.xhr?
-    rescue OAuth2::Error => @error
-      erb :error, :layout => !request.xhr?
+      JSON.pretty_generate(merchant_info.sanitized)
+    #   hash[:access_token] = nil
+    #   erb :explore, :layout => !request.xhr?
+    # rescue OAuth2::Error => @error
+    #   erb :error, :layout => !request.xhr?
     end
   end
 
